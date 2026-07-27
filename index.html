@@ -47,76 +47,115 @@
           <span class="field-label">Your Phone</span>
           <input type="tel" placeholder="Enter phone number" />
         </label>
-        <label class="field-group">
-          <span class="field-label">Role</span>
-          <div class="select-shell">
-            <select>
-              <option>User</option>
-              <option>Manager</option>
-              <option>Guest</option>
-              <option>Education</option>
-            </select>
-            <span class="select-icon">⌄</span>
-          </div>
-        </label>
-        <label class="field-group">
-          <span class="field-label">User Type</span>
-          <div class="select-shell">
-            <select id="user-type-select">
-              <option value="" disabled selected>Select user type</option>
-              <option>RemoteVU - Remote Expert</option>
-              <option>CareVU - Patient Side</option>
-            </select>
-            <span class="select-icon">⌄</span>
-          </div>
-        </label>
-        <div id="conditional-fields" class="hidden">
-          <fieldset class="field-group checkbox-group">
-            <legend class="field-label">
-              Devices requested <strong>*</strong>
-            </legend>
-            <label class="checkbox-item">
-              <input type="checkbox" name="devices" value="GlassVU" />
-              <span>GlassVU - Smart Glasses for AR collaboration</span>
-            </label>
-            <label class="checkbox-item">
-              <input type="checkbox" name="devices" value="ScreenVU" />
-              <span>ScreenVU - Users who need to stream and share real-time video feeds from medical devices "e.g., endoscopes, ultrasounds, or monitors" into the session.</span>
-            </label>
-            <label class="checkbox-item">
-              <input type="checkbox" name="devices" value="CamVU" />
-              <span>CamVU - Users who want to use a mobile device as a portable camera source to broadcast from the clinical environment.</span>
-            </label>
-            <label class="checkbox-item">
-              <input type="checkbox" name="devices" value="CamVU PTZ" />
-              <span>CamVU PTZ - Dedicated high-definition Pan-Tilt-Zoom camera used for detailed viewing of clinical environments</span>
-            </label>
-            <label class="checkbox-item">
-              <input type="checkbox" name="devices" value="TeleVU Station" />
-              <span>TeleVU Station - Telepresence units (Carts or Rovers) designed for all-in-one solutions</span>
-            </label>
+        <div id="user-details-group" class="field-group hidden">
+          <fieldset class="field-group user-details-table-wrapper">
+            <legend class="field-label">User details</legend>
+            <table class="user-details-table">
+              <tbody id="user-rows">
+                <tr class="user-row">
+                  <td><input type="text" placeholder="Name" /></td>
+                  <td><input type="email" placeholder="Email" /></td>
+                  <td><input type="tel" placeholder="Phone" /></td>
+                  <td>
+                    <div class="select-shell small">
+                      <select>
+                        <option>User</option>
+                        <option>Manager</option>
+                        <option>Guest</option>
+                        <option>Education</option>
+                      </select>
+                      <span class="select-icon">⌄</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="select-shell small">
+                      <select>
+                        <option value="" disabled selected>User type</option>
+                        <option>RemoteVU - Remote Expert</option>
+                        <option>CareVU - Patient Side</option>
+                      </select>
+                      <span class="select-icon">⌄</span>
+                    </div>
+                  </td>
+                  <td><button type="button" class="row-action remove-row" aria-label="Remove user row">×</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" id="add-user-row" class="secondary">+ Add user</button>
           </fieldset>
+        </div>
+        <div id="below-user-details">
           <label class="field-group">
-            <span class="field-label">Where should the equipment be shipped to?</span>
-            <textarea rows="4" placeholder="Enter shipping address"></textarea>
+            <span class="field-label">Role</span>
+            <div class="select-shell">
+              <select>
+                <option>User</option>
+                <option>Manager</option>
+                <option>Guest</option>
+                <option>Education</option>
+              </select>
+              <span class="select-icon">⌄</span>
+            </div>
           </label>
-          <label class="checkbox-toggle">
-            <input type="checkbox" id="required-date-toggle" />
-            <span>Is there a required date by which equipment must be received?</span>
+          <label class="field-group">
+            <span class="field-label">User Type</span>
+            <div class="select-shell">
+              <select id="user-type-select">
+                <option value="" disabled selected>Select user type</option>
+                <option>RemoteVU - Remote Expert</option>
+                <option>CareVU - Patient Side</option>
+              </select>
+              <span class="select-icon">⌄</span>
+            </div>
           </label>
-          <div id="delivery-date-group" class="field-group hidden">
+          <div id="conditional-fields" class="hidden">
+            <fieldset class="field-group checkbox-group">
+              <legend class="field-label">
+                Devices requested <strong>*</strong>
+              </legend>
+              <label class="checkbox-item">
+                <input type="checkbox" name="devices" value="GlassVU" />
+                <span>GlassVU - Smart Glasses for AR collaboration</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="devices" value="ScreenVU" />
+                <span>ScreenVU - Users who need to stream and share real-time video feeds from medical devices "e.g., endoscopes, ultrasounds, or monitors" into the session.</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="devices" value="CamVU" />
+                <span>CamVU - Users who want to use a mobile device as a portable camera source to broadcast from the clinical environment.</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="devices" value="CamVU PTZ" />
+                <span>CamVU PTZ - Dedicated high-definition Pan-Tilt-Zoom camera used for detailed viewing of clinical environments</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="devices" value="TeleVU Station" />
+                <span>TeleVU Station - Telepresence units (Carts or Rovers) designed for all-in-one solutions</span>
+              </label>
+            </fieldset>
+            <label class="field-group">
+              <span class="field-label">Where should the equipment be shipped to?</span>
+              <textarea rows="4" placeholder="Enter shipping address"></textarea>
+            </label>
+            <label class="checkbox-toggle">
+              <input type="checkbox" id="required-date-toggle" />
+              <span>Is there a required date by which equipment must be received?</span>
+            </label>
+            <div id="delivery-date-group" class="field-group hidden">
+              <label>
+                <span class="field-label">Enter the required delivery date</span>
+                <input type="date" />
+                <span class="field-note">MM/dd/yyyy</span>
+              </label>
+            </div>
+          </div>
+          <div id="additional-info-group" class="field-group hidden">
             <label>
-              <span class="field-label">Enter the required delivery date</span>
-              <input type="date" />
-              <span class="field-note">MM/dd/yyyy</span>
+              <span class="field-label">Please provide any additional information or special instructions for your onboarding</span>
+              <textarea rows="5" placeholder="Enter additional information"></textarea>
             </label>
           </div>
-        </div>
-        <div id="additional-info-group" class="field-group hidden">
-          <label>
-            <span class="field-label">Please provide any additional information or special instructions for your onboarding</span>
-            <textarea rows="5" placeholder="Enter additional information"></textarea>
-          </label>
         </div>
         <button type="submit">Submit Request</button>
       </form>
@@ -126,6 +165,9 @@
     const userTypeSelect = document.getElementById('user-type-select');
     const conditionalFields = document.getElementById('conditional-fields');
     const additionalInfoGroup = document.getElementById('additional-info-group');
+    const userDetailsGroup = document.getElementById('user-details-group');
+    const addUserRowButton = document.getElementById('add-user-row');
+    const userRows = document.getElementById('user-rows');
     const requiredDateToggle = document.getElementById('required-date-toggle');
     const deliveryGroup = document.getElementById('delivery-date-group');
 
@@ -137,6 +179,7 @@
       const selected = userTypeSelect.value;
       const isRemoteExpert = selected === 'RemoteVU - Remote Expert';
       const hasSelection = selected !== '';
+      const clientSelected = document.querySelector('input[name="formFor"]:checked').value === 'Client';
 
       if (!hasSelection) {
         conditionalFields.classList.add('hidden');
@@ -149,14 +192,73 @@
         additionalInfoGroup.classList.remove('hidden');
       }
 
+      userDetailsGroup.classList.toggle('hidden', !clientSelected);
+      document.getElementById('below-user-details').classList.toggle('hidden', clientSelected);
+
       if (!hasSelection) {
         requiredDateToggle.checked = false;
         updateDeliveryVisibility();
       }
     }
 
+    function createUserRow() {
+      const row = document.createElement('tr');
+      row.className = 'user-row';
+      row.innerHTML = `
+        <td><input type="text" placeholder="Name" /></td>
+        <td><input type="email" placeholder="Email" /></td>
+        <td><input type="tel" placeholder="Phone" /></td>
+        <td>
+          <div class="select-shell small">
+            <select>
+              <option>User</option>
+              <option>Manager</option>
+              <option>Guest</option>
+              <option>Education</option>
+            </select>
+            <span class="select-icon">⌄</span>
+          </div>
+        </td>
+        <td>
+          <div class="select-shell small">
+            <select>
+              <option value="" disabled selected>User type</option>
+              <option>RemoteVU - Remote Expert</option>
+              <option>CareVU - Patient Side</option>
+            </select>
+            <span class="select-icon">⌄</span>
+          </div>
+        </td>
+        <td><button type="button" class="row-action remove-row" aria-label="Remove user row">×</button></td>
+      `;
+
+      row.querySelector('.remove-row').addEventListener('click', () => {
+        if (userRows.children.length > 1) {
+          row.remove();
+        }
+      });
+
+      return row;
+    }
+
+    function addUserRow() {
+      userRows.appendChild(createUserRow());
+    }
+
+    addUserRowButton.addEventListener('click', addUserRow);
+
+    const initialRow = userRows.querySelector('.user-row');
+    initialRow.querySelector('.remove-row').addEventListener('click', () => {
+      if (userRows.children.length > 1) {
+        initialRow.remove();
+      }
+    });
+
     requiredDateToggle.addEventListener('change', updateDeliveryVisibility);
     userTypeSelect.addEventListener('change', updateConditionalFields);
+    document.querySelectorAll('input[name="formFor"]').forEach((radio) => {
+      radio.addEventListener('change', updateConditionalFields);
+    });
     updateConditionalFields();
   </script>
 </body>

@@ -118,6 +118,71 @@ textarea:focus {
 .checkbox-toggle span {
   line-height: 1.4;
 }
+.user-details-table-wrapper {
+  display: grid;
+  gap: 16px;
+}
+.user-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #c8d1e5;
+  border-radius: 16px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+.user-details-table td {
+  padding: 10px 12px;
+  border: 1px solid #d8e1ee;
+}
+.user-details-table tbody tr:nth-child(even) {
+  background: #f8fbff;
+}
+.user-details-table tbody tr:hover {
+  background: #eef4ff;
+}
+.user-details-table input,
+.user-details-table select {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: #1d263b;
+  font: inherit;
+}
+.user-details-table input:focus,
+.user-details-table select:focus {
+  outline: 1px solid rgba(94, 140, 255, 0.6);
+  outline-offset: -1px;
+}
+.user-details-table .select-shell {
+  width: 100%;
+}
+.user-details-table .select-shell.small select {
+  padding: 8px 10px;
+}
+.user-details-table .row-action {
+  border: none;
+  background: #f1f4ff;
+  color: #3f4f6f;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+.secondary {
+  width: fit-content;
+  padding: 10px 16px;
+  border: 1px solid #dfe4ee;
+  background: #f8faff;
+  color: #233050;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.hidden {
+  display: none;
+}
 .radio-group {
   border: none;
   padding: 0;
