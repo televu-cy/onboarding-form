@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Details</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="form-card">
+      <div class="brand">
+        <img class="brand-logo" src="https://via.placeholder.com/120x40?text=TELEVU" alt="TeleVU logo" />
+        <span>Always There</span>
+      </div>
+      <h1>User details</h1>
+      <form class="onboarding-form">
+        <fieldset class="field-group user-details-table-wrapper">
+          <table class="user-details-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>User type</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="user-rows">
+              <tr class="user-row">
+                <td><input type="text" placeholder="Name" /></td>
+                <td><input type="email" placeholder="Email" /></td>
+                <td><input type="tel" placeholder="Phone" /></td>
+                <td>
+                  <div class="select-shell small">
+                    <select>
+                      <option>User</option>
+                      <option>Manager</option>
+                      <option>Guest</option>
+                      <option>Education</option>
+                    </select>
+                    <span class="select-icon">⌄</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="select-shell small">
+                    <select class="user-type-select">
+                      <option value="" disabled selected>User type</option>
+                      <option>RemoteVU - Remote Expert</option>
+                      <option>CareVU - Patient Side</option>
+                    </select>
+                    <span class="select-icon">⌄</span>
+                  </div>
+                </td>
+                <td><button type="button" class="row-action remove-row" aria-label="Remove user row">×</button></td>
+              </tr>
+              <tr class="user-details-row hidden">
+                <td colspan="6">
+                  <div class="details-panel">
+                    <div class="details-summary">
+                      <span class="details-summary-text">CareVU details available</span>
+                      <button type="button" class="details-toggle button small">Edit details</button>
+                    </div>
+                    <div class="details-body hidden">
+                      <fieldset class="field-group checkbox-group">
+                        <legend class="field-label">Devices requested</legend>
+                        <label class="checkbox-item">
+                          <input type="checkbox" name="devices" value="GlassVU" />
+                          <span>GlassVU - Smart Glasses for AR collaboration</span>
+                        </label>
+                        <label class="checkbox-item">
+                          <input type="checkbox" name="devices" value="ScreenVU" />
+                          <span>ScreenVU - Users who need to stream and share real-time video feeds from medical devices.</span>
+                        </label>
+                        <label class="checkbox-item">
+                          <input type="checkbox" name="devices" value="CamVU" />
+                          <span>CamVU - Users who want to use a mobile device as a portable camera source.</span>
+                        </label>
+                        <label class="checkbox-item">
+                          <input type="checkbox" name="devices" value="CamVU PTZ" />
+                          <span>CamVU PTZ - High-definition Pan-Tilt-Zoom camera for clinical viewing.</span>
+                        </label>
+                        <label class="checkbox-item">
+                          <input type="checkbox" name="devices" value="TeleVU Station" />
+                          <span>TeleVU Station - Telepresence unit for all-in-one solutions.</span>
+                        </label>
+                      </fieldset>
+                      <label class="field-group">
+                        <span class="field-label">Where should the equipment be shipped to?</span>
+                        <textarea rows="4" placeholder="Enter shipping address"></textarea>
+                      </label>
+                      <label class="field-group">
+                        <span class="field-label">Please provide any additional information or special instructions for your onboarding</span>
+                        <textarea rows="5" placeholder="Enter additional information"></textarea>
+                      </label>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <button type="button" id="add-user-row" class="secondary">+ Add user</button>
+        </fieldset>
+        <button type="submit">Submit Request</button>
+      </form>
+    </div>
+  </div>
+  <script>
+    const addUserRowButton = document.getElementById('add-user-row');
+    const userRows = document.getElementById('user-rows');
+
+    function updateCarevuDetails(row, select) {
+      const detailsRow = row.nextElementSibling;
+      const showDetails = select.value === 'CareVU - Patient Side';
+      detailsRow.classList.toggle('hidden', !showDetails);
+      if (showDetails) {
+        toggleDetailsBody(detailsRow, false);
+      }
+    }
+
+    function bindUserTypeListener(row, select) {
+      select.addEventListener('change', () => updateCarevuDetails(row, select));
+    }
+
+    function toggleDetailsBody(detailsRow, expanded) {
+      const detailsBody = detailsRow.querySelector('.details-body');
+      const toggleButton = detailsRow.querySelector('.details-toggle');
+      detailsBody.classList.toggle('hidden', !expanded);
+      toggleButton.textContent = expanded ? 'Hide details' : 'Edit details';
+    }
+
+    function bindDetailsToggle(detailsRow) {
+      detailsRow.querySelector('.details-toggle').addEventListener('click', () => {
+        const detailsBody = detailsRow.querySelector('.details-body');
+        toggleDetailsBody(detailsRow, detailsBody.classList.contains('hidden'));
+      });
+    }
+
+    function createDetailsRow() {
+      const row = document.createElement('tr');
+      row.className = 'user-details-row hidden';
+      row.innerHTML = `
+        <td colspan="6">
+          <div class="details-panel">
+            <div class="details-summary">
+              <span class="details-summary-text">CareVU details available</span>
+              <button type="button" class="details-toggle button small">Edit details</button>
+            </div>
+            <div class="details-body hidden">
+              <fieldset class="field-group checkbox-group">
+                <legend class="field-label">Devices requested</legend>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="devices" value="GlassVU" />
+                  <span>GlassVU - Smart Glasses for AR collaboration</span>
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="devices" value="ScreenVU" />
+                  <span>ScreenVU - Users who need to stream and share real-time video feeds from medical devices.</span>
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="devices" value="CamVU" />
+                  <span>CamVU - Users who want to use a mobile device as a portable camera source.</span>
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="devices" value="CamVU PTZ" />
+                  <span>CamVU PTZ - High-definition Pan-Tilt-Zoom camera for clinical viewing.</span>
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" name="devices" value="TeleVU Station" />
+                  <span>TeleVU Station - Telepresence unit for all-in-one solutions.</span>
+                </label>
+              </fieldset>
+              <label class="field-group">
+                <span class="field-label">Where should the equipment be shipped to?</span>
+                <textarea rows="4" placeholder="Enter shipping address"></textarea>
+              </label>
+              <label class="field-group">
+                <span class="field-label">Please provide any additional information or special instructions for your onboarding</span>
+                <textarea rows="5" placeholder="Enter additional information"></textarea>
+              </label>
+            </div>
+          </div>
+        </td>
+      `;
+      bindDetailsToggle(row);
+      return row;
+    }
+
+    function createUserRow() {
+      const row = document.createElement('tr');
+      row.className = 'user-row';
+      row.innerHTML = `
+        <td><input type="text" placeholder="Name" /></td>
+        <td><input type="email" placeholder="Email" /></td>
+        <td><input type="tel" placeholder="Phone" /></td>
+        <td>
+          <div class="select-shell small">
+            <select>
+              <option>User</option>
+              <option>Manager</option>
+              <option>Guest</option>
+              <option>Education</option>
+            </select>
+            <span class="select-icon">⌄</span>
+          </div>
+        </td>
+        <td>
+          <div class="select-shell small">
+            <select class="user-type-select">
+              <option value="" disabled selected>User type</option>
+              <option>RemoteVU - Remote Expert</option>
+              <option>CareVU - Patient Side</option>
+            </select>
+            <span class="select-icon">⌄</span>
+          </div>
+        </td>
+        <td><button type="button" class="row-action remove-row" aria-label="Remove user row">×</button></td>
+      `;
+
+      const detailsRow = createDetailsRow();
+      bindUserTypeListener(row, row.querySelector('.user-type-select'));
+
+      row.querySelector('.remove-row').addEventListener('click', () => {
+        if (userRows.querySelectorAll('.user-row').length > 1) {
+          row.remove();
+          detailsRow.remove();
+        }
+      });
+
+      return { row, detailsRow };
+    }
+
+    addUserRowButton.addEventListener('click', () => {
+      const { row, detailsRow } = createUserRow();
+      userRows.appendChild(row);
+      userRows.appendChild(detailsRow);
+    });
+
+    const initialRow = userRows.querySelector('.user-row');
+    const initialDetailsRow = initialRow.nextElementSibling;
+
+    initialRow.querySelector('.remove-row').addEventListener('click', () => {
+      if (userRows.querySelectorAll('.user-row').length > 1) {
+        initialRow.remove();
+        initialDetailsRow.remove();
+      }
+    });
+
+    bindUserTypeListener(initialRow, initialRow.querySelector('.user-type-select'));
+    bindDetailsToggle(initialDetailsRow);
+  </script>
+</body>
+</html>

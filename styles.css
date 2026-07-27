@@ -17,7 +17,7 @@ body {
               #e8f0fb;
 }
 .page-shell {
-  width: min(100%, 760px);
+  width: min(100%, 1280px);
   padding: 28px;
 }
 .form-card {
@@ -171,6 +171,46 @@ textarea:focus {
   font-size: 1.15rem;
   cursor: pointer;
 }
+.details-panel {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: #f8faff;
+  border: 1px solid #dce7ff;
+}
+.details-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.details-summary-text {
+  color: #2b3857;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.details-toggle {
+  border: none;
+  background: transparent;
+  color: #1f3c73;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.details-toggle:hover {
+  background: rgba(41, 112, 255, 0.08);
+}
+.details-body {
+  display: grid;
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #dce7ff;
+}
+.details-body.hidden {
+  display: none;
+}
 .secondary {
   width: fit-content;
   padding: 10px 16px;
@@ -179,6 +219,23 @@ textarea:focus {
   color: #233050;
   border-radius: 12px;
   cursor: pointer;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-weight: 700;
+}
+.button.primary {
+  background: linear-gradient(135deg, #2862f5 0%, #1b4fcd 100%);
+  color: white;
+}
+.info-text {
+  margin: 0 0 10px;
+  color: #4a5970;
 }
 .hidden {
   display: none;

@@ -47,44 +47,11 @@
           <span class="field-label">Your Phone</span>
           <input type="tel" placeholder="Enter phone number" />
         </label>
-        <div id="user-details-group" class="field-group hidden">
-          <fieldset class="field-group user-details-table-wrapper">
-            <legend class="field-label">User details</legend>
-            <table class="user-details-table">
-              <tbody id="user-rows">
-                <tr class="user-row">
-                  <td><input type="text" placeholder="Name" /></td>
-                  <td><input type="email" placeholder="Email" /></td>
-                  <td><input type="tel" placeholder="Phone" /></td>
-                  <td>
-                    <div class="select-shell small">
-                      <select>
-                        <option>User</option>
-                        <option>Manager</option>
-                        <option>Guest</option>
-                        <option>Education</option>
-                      </select>
-                      <span class="select-icon">⌄</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="select-shell small">
-                      <select>
-                        <option value="" disabled selected>User type</option>
-                        <option>RemoteVU - Remote Expert</option>
-                        <option>CareVU - Patient Side</option>
-                      </select>
-                      <span class="select-icon">⌄</span>
-                    </div>
-                  </td>
-                  <td><button type="button" class="row-action remove-row" aria-label="Remove user row">×</button></td>
-                </tr>
-              </tbody>
-            </table>
-            <button type="button" id="add-user-row" class="secondary">+ Add user</button>
-          </fieldset>
+        <div id="client-continue" class="field-group hidden">
+          <p class="info-text">Client selected. Continue to the user details page to add users.</p>
+          <a class="button primary" href="index2.html">Continue to User details</a>
         </div>
-        <div id="below-user-details">
+        <div id="below-user-details" class="hidden">
           <label class="field-group">
             <span class="field-label">Role</span>
             <div class="select-shell">
@@ -157,7 +124,7 @@
             </label>
           </div>
         </div>
-        <button type="submit">Submit Request</button>
+        <button id="main-submit" type="submit">Submit Request</button>
       </form>
     </div>
   </div>
@@ -165,9 +132,8 @@
     const userTypeSelect = document.getElementById('user-type-select');
     const conditionalFields = document.getElementById('conditional-fields');
     const additionalInfoGroup = document.getElementById('additional-info-group');
-    const userDetailsGroup = document.getElementById('user-details-group');
-    const addUserRowButton = document.getElementById('add-user-row');
-    const userRows = document.getElementById('user-rows');
+    const clientContinue = document.getElementById('client-continue');
+    const mainSubmit = document.getElementById('main-submit');
     const requiredDateToggle = document.getElementById('required-date-toggle');
     const deliveryGroup = document.getElementById('delivery-date-group');
 
@@ -192,7 +158,8 @@
         additionalInfoGroup.classList.remove('hidden');
       }
 
-      userDetailsGroup.classList.toggle('hidden', !clientSelected);
+      clientContinue.classList.toggle('hidden', !clientSelected);
+      mainSubmit.classList.toggle('hidden', clientSelected);
       document.getElementById('below-user-details').classList.toggle('hidden', clientSelected);
 
       if (!hasSelection) {
@@ -200,59 +167,6 @@
         updateDeliveryVisibility();
       }
     }
-
-    function createUserRow() {
-      const row = document.createElement('tr');
-      row.className = 'user-row';
-      row.innerHTML = `
-        <td><input type="text" placeholder="Name" /></td>
-        <td><input type="email" placeholder="Email" /></td>
-        <td><input type="tel" placeholder="Phone" /></td>
-        <td>
-          <div class="select-shell small">
-            <select>
-              <option>User</option>
-              <option>Manager</option>
-              <option>Guest</option>
-              <option>Education</option>
-            </select>
-            <span class="select-icon">⌄</span>
-          </div>
-        </td>
-        <td>
-          <div class="select-shell small">
-            <select>
-              <option value="" disabled selected>User type</option>
-              <option>RemoteVU - Remote Expert</option>
-              <option>CareVU - Patient Side</option>
-            </select>
-            <span class="select-icon">⌄</span>
-          </div>
-        </td>
-        <td><button type="button" class="row-action remove-row" aria-label="Remove user row">×</button></td>
-      `;
-
-      row.querySelector('.remove-row').addEventListener('click', () => {
-        if (userRows.children.length > 1) {
-          row.remove();
-        }
-      });
-
-      return row;
-    }
-
-    function addUserRow() {
-      userRows.appendChild(createUserRow());
-    }
-
-    addUserRowButton.addEventListener('click', addUserRow);
-
-    const initialRow = userRows.querySelector('.user-row');
-    initialRow.querySelector('.remove-row').addEventListener('click', () => {
-      if (userRows.children.length > 1) {
-        initialRow.remove();
-      }
-    });
 
     requiredDateToggle.addEventListener('change', updateDeliveryVisibility);
     userTypeSelect.addEventListener('change', updateConditionalFields);
