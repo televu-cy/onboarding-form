@@ -158,17 +158,19 @@ function buildRows(payload, timestamp, headers) {
   }
 
   if (source === "user-details-form" && Array.isArray(payload.users)) {
+    const mainForm = payload.mainForm || {};
+
     payload.users.forEach(function(user) {
       rows.push(buildRowFromObject(headers, {
         Timestamp: timestamp,
         Source: source,
-        "Form For": "",
-        "Portal Name": "",
-        "First Name": "",
-        "Last Name": "",
+        "Form For": mainForm.formFor || "",
+        "Portal Name": mainForm.portalName || "",
+        "First Name": mainForm.firstName || "",
+        "Last Name": mainForm.lastName || "",
         Name: user.name || "",
-        Email: user.email || "",
-        Phone: user.phone || "",
+        Email: user.email || mainForm.email || "",
+        Phone: user.phone || mainForm.phone || "",
         Role: user.role || "",
         "User Type": user.userType || "",
         Devices: joinArray(user.devices),

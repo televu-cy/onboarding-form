@@ -113,6 +113,20 @@
     const form = document.getElementById('user-details-form');
     const statusBox = document.getElementById('form-status');
     const SHEET_WEBHOOK_URL = window.APP_CONFIG?.SHEET_WEBHOOK_URL || '';
+    const MAIN_FORM_DRAFT_KEY = 'onboardingMainFormDraft';
+
+    function readMainFormDraft() {
+      try {
+        const raw = sessionStorage.getItem(MAIN_FORM_DRAFT_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function clearMainFormDraft() {
+      sessionStorage.removeItem(MAIN_FORM_DRAFT_KEY);
+    }
 
     function setStatus(message, type = 'info') {
       statusBox.textContent = message;
@@ -257,6 +271,36 @@
       });
     }
 
+    function resetUserDetailsForm() {
+      form.reset();
+
+      Array.from(userRows.querySelectorAll('.user-row')).forEach((row, index) => {
+        if (index > 0) {
+          const detailsRow = row.nextElementSibling;
+          row.remove();
+          if (detailsRow && detailsRow.classList.contains('user-details-row')) {
+            detailsRow.remove();
+          }
+        }
+      });
+
+      const firstRow = userRows.querySelector('.user-row');
+      const firstDetails = firstRow ? firstRow.nextElementSibling : null;
+
+      if (firstRow) {
+        const firstType = firstRow.querySelector('.user-type-select');
+        if (firstType) {
+          firstType.selectedIndex = 0;
+          updateCarevuDetails(firstRow, firstType);
+        }
+      }
+
+      if (firstDetails) {
+        toggleDetailsBody(firstDetails, false);
+        firstDetails.classList.add('hidden');
+      }
+    }
+
     async function handleUserSubmit(event) {
       event.preventDefault();
 
@@ -268,15 +312,22 @@
       setStatus('Submitting your request...', 'loading');
 
       try {
+        const mainForm = readMainFormDraft();
+
         await fetch(SHEET_WEBHOOK_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ source: 'user-details-form', users: collectUserRows() }),
+          body: JSON.stringify({ source: 'user-details-form', mainForm, users: collectUserRows() }),
         });
 
         // Apps Script web apps commonly require no-cors, which returns an opaque response.
         setStatus('Your user details were submitted successfully.', 'success');
+        resetUserDetailsForm();
+        clearMainFormDraft();
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 3000);
       } catch (error) {
         setStatus(error.message || 'Submission failed. Please try again.', 'error');
       }

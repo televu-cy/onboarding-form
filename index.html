@@ -49,7 +49,7 @@
         </label>
         <div id="client-continue" class="field-group hidden">
           <p class="info-text">Client selected. Continue to the user details page to add users.</p>
-          <a class="button primary" href="index2.html">Continue to User details</a>
+          <a id="continue-to-user-details" class="button primary" href="index2.html">Continue to User details</a>
         </div>
         <div id="below-user-details" class="hidden">
           <label class="field-group">
@@ -135,11 +135,25 @@
     const additionalInfoGroup = document.getElementById('additional-info-group');
     const clientContinue = document.getElementById('client-continue');
     const mainSubmit = document.getElementById('main-submit');
+    const continueToUserDetails = document.getElementById('continue-to-user-details');
     const requiredDateToggle = document.getElementById('required-date-toggle');
     const deliveryGroup = document.getElementById('delivery-date-group');
     const form = document.getElementById('main-onboarding-form');
     const statusBox = document.getElementById('form-status');
     const SHEET_WEBHOOK_URL = window.APP_CONFIG?.SHEET_WEBHOOK_URL || '';
+    const MAIN_FORM_DRAFT_KEY = 'onboardingMainFormDraft';
+
+    function persistMainFormDraft() {
+      try {
+        sessionStorage.setItem(MAIN_FORM_DRAFT_KEY, JSON.stringify(collectMainFormData()));
+      } catch (error) {
+        // Ignore storage failures and continue navigation/submission.
+      }
+    }
+
+    function clearMainFormDraft() {
+      sessionStorage.removeItem(MAIN_FORM_DRAFT_KEY);
+    }
 
     function setStatus(message, type = 'info') {
       statusBox.textContent = message;
@@ -206,6 +220,8 @@
       setStatus('Submitting your request...', 'loading');
 
       try {
+        persistMainFormDraft();
+
         await fetch(SHEET_WEBHOOK_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -216,10 +232,20 @@
         // Apps Script web apps commonly require no-cors, which returns an opaque response.
         setStatus('Your request was submitted successfully.', 'success');
         form.reset();
+        clearMainFormDraft();
         updateConditionalFields();
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 3000);
       } catch (error) {
         setStatus(error.message || 'Submission failed. Please try again.', 'error');
       }
+    }
+
+    function handleContinueToUserDetails(event) {
+      event.preventDefault();
+      persistMainFormDraft();
+      window.location.href = 'index2.html';
     }
 
     requiredDateToggle.addEventListener('change', updateDeliveryVisibility);
@@ -227,6 +253,7 @@
     document.querySelectorAll('input[name="formFor"]').forEach((radio) => {
       radio.addEventListener('change', updateConditionalFields);
     });
+    continueToUserDetails.addEventListener('click', handleContinueToUserDetails);
     form.addEventListener('submit', handleMainSubmit);
     updateConditionalFields();
   </script>
