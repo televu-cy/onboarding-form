@@ -213,7 +213,7 @@
         });
 
         // Apps Script web apps commonly require no-cors, which returns an opaque response.
-        setStatus('Your request was submitted successfully. Please check your sheet for confirmation.', 'success');
+        setStatus('Your request was submitted successfully.', 'success');
         form.reset();
         updateConditionalFields();
       } catch (error) {

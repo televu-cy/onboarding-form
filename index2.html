@@ -275,7 +275,7 @@
         });
 
         // Apps Script web apps commonly require no-cors, which returns an opaque response.
-        setStatus('Your user details were submitted successfully. Please check your sheet for confirmation.', 'success');
+        setStatus('Your user details were submitted successfully.', 'success');
       } catch (error) {
         setStatus(error.message || 'Submission failed. Please try again.', 'error');
       }

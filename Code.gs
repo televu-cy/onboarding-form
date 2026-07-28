@@ -12,6 +12,7 @@ function doPost(e) {
       "Portal Name",
       "First Name",
       "Last Name",
+      "Name",
       "Email",
       "Phone",
       "Role",
@@ -19,8 +20,7 @@ function doPost(e) {
       "Devices",
       "Shipping Address",
       "Additional Info",
-      "Required Delivery Date",
-      "User Name"
+      "Required Delivery Date"
     ];
 
     ensureHeaders(sheet, headers);
@@ -84,6 +84,7 @@ function buildRows(payload, timestamp, headers) {
       "Portal Name": payload.portalName || "",
       "First Name": payload.firstName || "",
       "Last Name": payload.lastName || "",
+      Name: "",
       Email: payload.email || "",
       Phone: payload.phone || "",
       Role: payload.role || "",
@@ -91,8 +92,7 @@ function buildRows(payload, timestamp, headers) {
       Devices: joinArray(payload.devices),
       "Shipping Address": payload.shippingAddress || "",
       "Additional Info": payload.additionalInfo || "",
-      "Required Delivery Date": payload.requiredDeliveryDate || "",
-      "User Name": payload.userName || ""
+      "Required Delivery Date": payload.requiredDeliveryDate || ""
     }, headers));
     return rows;
   }
@@ -106,6 +106,7 @@ function buildRows(payload, timestamp, headers) {
         "Portal Name": "",
         "First Name": "",
         "Last Name": "",
+        Name: user.name || "",
         Email: user.email || "",
         Phone: user.phone || "",
         Role: user.role || "",
@@ -113,8 +114,7 @@ function buildRows(payload, timestamp, headers) {
         Devices: joinArray(user.devices),
         "Shipping Address": user.shippingAddress || "",
         "Additional Info": user.additionalInfo || "",
-        "Required Delivery Date": "",
-        "User Name": user.name || ""
+        "Required Delivery Date": ""
       }, headers));
     });
   }
