@@ -4,24 +4,7 @@ function doPost(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheetName = "Form Responses";
     const sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
-
-    const headers = [
-      "Timestamp",
-      "Source",
-      "Form For",
-      "Portal Name",
-      "First Name",
-      "Last Name",
-      "Name",
-      "Email",
-      "Phone",
-      "Role",
-      "User Type",
-      "Devices",
-      "Shipping Address",
-      "Additional Info",
-      "Required Delivery Date"
-    ];
+    const headers = getCanonicalHeaders();
 
     ensureHeaders(sheet, headers);
 
@@ -35,12 +18,31 @@ function doPost(e) {
     return ContentService
       .createTextOutput(JSON.stringify({ ok: true, message: "Saved to sheet", rows: rows.length }))
       .setMimeType(ContentService.MimeType.JSON);
-
   } catch (error) {
     return ContentService
       .createTextOutput(JSON.stringify({ ok: false, message: error.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function getCanonicalHeaders() {
+  return [
+    "Timestamp",
+    "Source",
+    "Form For",
+    "Portal Name",
+    "First Name",
+    "Last Name",
+    "Name",
+    "Email",
+    "Phone",
+    "Role",
+    "User Type",
+    "Devices",
+    "Shipping Address",
+    "Additional Info",
+    "Required Delivery Date"
+  ];
 }
 
 function parsePayload(e) {
@@ -58,18 +60,75 @@ function parsePayload(e) {
 }
 
 function ensureHeaders(sheet, headers) {
-  if (sheet.getLastRow() === 0) {
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow === 0) {
     sheet.appendRow(headers);
     return;
   }
 
-  const existing = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-  const matches = headers.every((h, i) => String(existing[i] || "").trim() === h);
+  const lastColumn = Math.max(headers.length, sheet.getLastColumn());
+  const topRow = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
 
-  if (!matches) {
+  if (isHeaderLikeRow(topRow)) {
+    normalizeTopHeaderRow(sheet, topRow, headers);
+  } else {
     sheet.insertRowBefore(1);
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
+
+  removeDuplicateHeaderRows(sheet, headers);
+}
+
+function normalizeTopHeaderRow(sheet, topRow, headers) {
+  const existing = topRow.slice(0, headers.length);
+  const matches = headers.every(function(header, index) {
+    return normalizeCell(existing[index]) === header;
+  });
+
+  if (!matches) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  if (topRow.length > headers.length) {
+    sheet.getRange(1, headers.length + 1, 1, topRow.length - headers.length).clearContent();
+  }
+}
+
+function removeDuplicateHeaderRows(sheet, headers) {
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow <= 1) {
+    return;
+  }
+
+  const lastColumn = Math.max(headers.length, sheet.getLastColumn());
+  const values = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
+  const rowsToDelete = [];
+
+  values.forEach(function(row, index) {
+    if (isHeaderLikeRow(row)) {
+      rowsToDelete.push(index + 2);
+    }
+  });
+
+  rowsToDelete.reverse().forEach(function(rowNumber) {
+    sheet.deleteRow(rowNumber);
+  });
+}
+
+function isHeaderLikeRow(row) {
+  if (!row || row.length < 3) {
+    return false;
+  }
+
+  return normalizeCell(row[0]) === "Timestamp"
+    && normalizeCell(row[1]) === "Source"
+    && normalizeCell(row[2]) === "Form For";
+}
+
+function normalizeCell(value) {
+  return String(value || "").trim();
 }
 
 function buildRows(payload, timestamp, headers) {
@@ -94,6 +153,7 @@ function buildRows(payload, timestamp, headers) {
       "Additional Info": payload.additionalInfo || "",
       "Required Delivery Date": payload.requiredDeliveryDate || ""
     }, headers));
+
     return rows;
   }
 

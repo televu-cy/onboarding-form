@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Customer Onboarding Form</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="config.js"></script>
 </head>
 <body>
   <div class="page-shell">
@@ -138,7 +139,7 @@
     const deliveryGroup = document.getElementById('delivery-date-group');
     const form = document.getElementById('main-onboarding-form');
     const statusBox = document.getElementById('form-status');
-    const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyUmvkO17Tkrgf5_pFEiuwd5Te4H2us8vlb4jmlvGvjFyxKXXqFbFdly6lcCQ8NzmjL/exec';
+    const SHEET_WEBHOOK_URL = window.APP_CONFIG?.SHEET_WEBHOOK_URL || '';
 
     function setStatus(message, type = 'info') {
       statusBox.textContent = message;
@@ -198,7 +199,7 @@
       event.preventDefault();
 
       if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.includes('YOUR_')) {
-        setStatus('Replace the Apps Script URL in the page script before submitting.', 'error');
+        setStatus('Set the Apps Script URL in config.js before submitting.', 'error');
         return;
       }
 
