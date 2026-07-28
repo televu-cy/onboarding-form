@@ -267,24 +267,15 @@
       setStatus('Submitting your request...', 'loading');
 
       try {
-        const response = await fetch(SHEET_WEBHOOK_URL, {
+        await fetch(SHEET_WEBHOOK_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ source: 'user-details-form', users: collectUserRows() }),
         });
 
-        let result = {};
-        try {
-          result = await response.json();
-        } catch (parseError) {
-          result = {};
-        }
-
-        if (!response.ok) {
-          throw new Error(result.message || 'The submission could not be completed.');
-        }
-
-        setStatus('Your user details were submitted successfully.', 'success');
+        // Apps Script web apps commonly require no-cors, which returns an opaque response.
+        setStatus('Your user details were submitted successfully. Please check your sheet for confirmation.', 'success');
       } catch (error) {
         setStatus(error.message || 'Submission failed. Please try again.', 'error');
       }
