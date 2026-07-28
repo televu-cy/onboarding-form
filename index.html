@@ -10,11 +10,10 @@
   <div class="page-shell">
     <div class="form-card">
       <div class="brand">
-        <img class="brand-logo" src="https://via.placeholder.com/120x40?text=TELEVU" alt="TeleVU logo" />
-        <span>Always There</span>
+        <img class="brand-logo" src="assets/logo.png" alt="TeleVU logo" />
       </div>
       <h1>Customer Onboarding Form</h1>
-      <form class="onboarding-form">
+      <form id="main-onboarding-form" class="onboarding-form">
         <fieldset class="field-group radio-group">
           <legend class="field-label">Who is this form for?</legend>
           <label class="radio-item">
@@ -124,6 +123,7 @@
             </label>
           </div>
         </div>
+        <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
         <button id="main-submit" type="submit">Submit Request</button>
       </form>
     </div>
@@ -136,6 +136,14 @@
     const mainSubmit = document.getElementById('main-submit');
     const requiredDateToggle = document.getElementById('required-date-toggle');
     const deliveryGroup = document.getElementById('delivery-date-group');
+    const form = document.getElementById('main-onboarding-form');
+    const statusBox = document.getElementById('form-status');
+    const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyvvS_3oBL7Ddta6Vmpm2ALP7oE3n_wy7A74ULJsov05YEYIacCJkbFj0pu3ilUiahz/exec';
+
+    function setStatus(message, type = 'info') {
+      statusBox.textContent = message;
+      statusBox.className = `form-status ${type}`;
+    }
 
     function updateDeliveryVisibility() {
       deliveryGroup.classList.toggle('hidden', !requiredDateToggle.checked);
@@ -168,11 +176,66 @@
       }
     }
 
+    function collectMainFormData() {
+      return {
+        source: 'main-form',
+        formFor: document.querySelector('input[name="formFor"]:checked').value,
+        portalName: form.querySelector('input[placeholder="Enter portal name"]').value.trim(),
+        firstName: form.querySelector('.name-row input[placeholder="First Name"]').value.trim(),
+        lastName: form.querySelector('.name-row input[placeholder="Last Name"]').value.trim(),
+        email: form.querySelector('input[type="email"]').value.trim(),
+        phone: form.querySelector('input[type="tel"]').value.trim(),
+        role: form.querySelector('select').value,
+        userType: userTypeSelect.value,
+        devices: Array.from(form.querySelectorAll('input[name="devices"]:checked')).map((input) => input.value),
+        shippingAddress: form.querySelector('textarea[placeholder="Enter shipping address"]').value.trim(),
+        additionalInfo: form.querySelectorAll('textarea')[1]?.value.trim() || '',
+        requiredDeliveryDate: form.querySelector('input[type="date"]').value,
+      };
+    }
+
+    async function handleMainSubmit(event) {
+      event.preventDefault();
+
+      if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.includes('YOUR_')) {
+        setStatus('Replace the Apps Script URL in the page script before submitting.', 'error');
+        return;
+      }
+
+      setStatus('Submitting your request...', 'loading');
+
+      try {
+        const response = await fetch(SHEET_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(collectMainFormData()),
+        });
+
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (parseError) {
+          result = {};
+        }
+
+        if (!response.ok) {
+          throw new Error(result.message || 'The submission could not be completed.');
+        }
+
+        setStatus('Your request was submitted successfully.', 'success');
+        form.reset();
+        updateConditionalFields();
+      } catch (error) {
+        setStatus(error.message || 'Submission failed. Please try again.', 'error');
+      }
+    }
+
     requiredDateToggle.addEventListener('change', updateDeliveryVisibility);
     userTypeSelect.addEventListener('change', updateConditionalFields);
     document.querySelectorAll('input[name="formFor"]').forEach((radio) => {
       radio.addEventListener('change', updateConditionalFields);
     });
+    form.addEventListener('submit', handleMainSubmit);
     updateConditionalFields();
   </script>
 </body>

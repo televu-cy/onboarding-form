@@ -10,11 +10,10 @@
   <div class="page-shell">
     <div class="form-card">
       <div class="brand">
-        <img class="brand-logo" src="https://via.placeholder.com/120x40?text=TELEVU" alt="TeleVU logo" />
-        <span>Always There</span>
+        <img class="brand-logo" src="assets/logo.png" alt="TeleVU logo" />
       </div>
       <h1>User details</h1>
-      <form class="onboarding-form">
+      <form id="user-details-form" class="onboarding-form">
         <fieldset class="field-group user-details-table-wrapper">
           <table class="user-details-table">
             <thead>
@@ -102,6 +101,7 @@
           </table>
           <button type="button" id="add-user-row" class="secondary">+ Add user</button>
         </fieldset>
+        <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
         <button type="submit">Submit Request</button>
       </form>
     </div>
@@ -109,6 +109,14 @@
   <script>
     const addUserRowButton = document.getElementById('add-user-row');
     const userRows = document.getElementById('user-rows');
+    const form = document.getElementById('user-details-form');
+    const statusBox = document.getElementById('form-status');
+    const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyvvS_3oBL7Ddta6Vmpm2ALP7oE3n_wy7A74ULJsov05YEYIacCJkbFj0pu3ilUiahz/exec';
+
+    function setStatus(message, type = 'info') {
+      statusBox.textContent = message;
+      statusBox.className = `form-status ${type}`;
+    }
 
     function updateCarevuDetails(row, select) {
       const detailsRow = row.nextElementSibling;
@@ -231,6 +239,57 @@
       return { row, detailsRow };
     }
 
+    function collectUserRows() {
+      return Array.from(userRows.querySelectorAll('.user-row')).map((row) => {
+        const detailsRow = row.nextElementSibling;
+        const detailsBody = detailsRow ? detailsRow.querySelector('.details-body') : null;
+        return {
+          name: row.querySelector('input[placeholder="Name"]').value.trim(),
+          email: row.querySelector('input[placeholder="Email"]').value.trim(),
+          phone: row.querySelector('input[placeholder="Phone"]').value.trim(),
+          role: row.querySelector('select').value,
+          userType: row.querySelector('.user-type-select').value,
+          devices: detailsBody ? Array.from(detailsBody.querySelectorAll('input[name="devices"]:checked')).map((input) => input.value) : [],
+          shippingAddress: detailsBody ? detailsBody.querySelector('textarea').value.trim() : '',
+          additionalInfo: detailsBody ? detailsBody.querySelectorAll('textarea')[1].value.trim() : '',
+        };
+      });
+    }
+
+    async function handleUserSubmit(event) {
+      event.preventDefault();
+
+      if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.includes('YOUR_')) {
+        setStatus('Replace the Apps Script URL in the page script before submitting.', 'error');
+        return;
+      }
+
+      setStatus('Submitting your request...', 'loading');
+
+      try {
+        const response = await fetch(SHEET_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: 'user-details-form', users: collectUserRows() }),
+        });
+
+        let result = {};
+        try {
+          result = await response.json();
+        } catch (parseError) {
+          result = {};
+        }
+
+        if (!response.ok) {
+          throw new Error(result.message || 'The submission could not be completed.');
+        }
+
+        setStatus('Your user details were submitted successfully.', 'success');
+      } catch (error) {
+        setStatus(error.message || 'Submission failed. Please try again.', 'error');
+      }
+    }
+
     addUserRowButton.addEventListener('click', () => {
       const { row, detailsRow } = createUserRow();
       userRows.appendChild(row);
@@ -249,6 +308,7 @@
 
     bindUserTypeListener(initialRow, initialRow.querySelector('.user-type-select'));
     bindDetailsToggle(initialDetailsRow);
+    form.addEventListener('submit', handleUserSubmit);
   </script>
 </body>
 </html>
