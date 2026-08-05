@@ -233,6 +233,7 @@ function buildRowFromObject(headers, values) {
 
 function sendFormEmailNotification(rows, headers) {
   const recipient = "support@televu.ca";
+  const copy = "cyril.vergara@televu.ca";
   const sheetUrl = "https://docs.google.com/spreadsheets/d/1E8ABVdsWoXQen3QeISVlWMYAaunBup7kNgP3Rp0WWbk/edit?usp=sharing";
   const subject = `New Form Submission Received - ${rows.length} row${rows.length === 1 ? "" : "s"}`;
 
@@ -261,6 +262,7 @@ function sendFormEmailNotification(rows, headers) {
 
   MailApp.sendEmail({
     to: recipient,
+    cc: copy,
     subject: subject,
     body: plainBody,
     htmlBody: htmlBody
