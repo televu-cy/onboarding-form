@@ -1,3 +1,3 @@
 window.APP_CONFIG = {
-  SHEET_WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwy0UWfe_ErTRSd0dBWTFfRTPpwXRs_yZriK532-poU1FVzF80DAPLWKr7Z0Znj3zlC/exec',
+  SHEET_WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwBVkcwFq7YEFgFL7iBOLQaZKXpkgXyNk4lftymoaTtwFOj_g5BDghhbLfND16dpJAt/exec',
 };
