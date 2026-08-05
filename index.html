@@ -151,6 +151,51 @@
       }
     }
 
+    function readMainFormDraft() {
+      try {
+        const raw = sessionStorage.getItem(MAIN_FORM_DRAFT_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function restoreMainFormDraft() {
+      const draft = readMainFormDraft();
+      if (!draft) {
+        return;
+      }
+
+      const selectedFor = draft.formFor || 'Myself';
+      const selectedForRadio = form.querySelector(`input[name="formFor"][value="${selectedFor}"]`);
+      if (selectedForRadio) {
+        selectedForRadio.checked = true;
+      }
+
+      form.querySelector('input[placeholder="Enter portal name"]').value = draft.portalName || '';
+      form.querySelector('.name-row input[placeholder="First Name"]').value = draft.firstName || '';
+      form.querySelector('.name-row input[placeholder="Last Name"]').value = draft.lastName || '';
+      form.querySelector('input[type="email"]').value = draft.email || '';
+      form.querySelector('input[type="tel"]').value = draft.phone || '';
+      form.querySelector('select').value = draft.role || 'User';
+      userTypeSelect.value = draft.userType || '';
+
+      const devices = Array.isArray(draft.devices) ? draft.devices : [];
+      form.querySelectorAll('input[name="devices"]').forEach((checkbox) => {
+        checkbox.checked = devices.includes(checkbox.value);
+      });
+
+      form.querySelector('textarea[placeholder="Enter shipping address"]').value = draft.shippingAddress || '';
+      form.querySelectorAll('textarea')[1].value = draft.additionalInfo || '';
+      const dateInput = form.querySelector('input[type="date"]');
+      if (dateInput) {
+        dateInput.value = draft.requiredDeliveryDate || '';
+      }
+      requiredDateToggle.checked = Boolean(draft.requiredDeliveryDate);
+      updateDeliveryVisibility();
+      updateConditionalFields();
+    }
+
     function clearMainFormDraft() {
       sessionStorage.removeItem(MAIN_FORM_DRAFT_KEY);
     }
@@ -253,8 +298,11 @@
     document.querySelectorAll('input[name="formFor"]').forEach((radio) => {
       radio.addEventListener('change', updateConditionalFields);
     });
+    form.addEventListener('input', persistMainFormDraft);
+    form.addEventListener('change', persistMainFormDraft);
     continueToUserDetails.addEventListener('click', handleContinueToUserDetails);
     form.addEventListener('submit', handleMainSubmit);
+    restoreMainFormDraft();
     updateConditionalFields();
   </script>
 </body>

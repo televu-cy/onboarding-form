@@ -114,6 +114,7 @@
     const statusBox = document.getElementById('form-status');
     const SHEET_WEBHOOK_URL = window.APP_CONFIG?.SHEET_WEBHOOK_URL || '';
     const MAIN_FORM_DRAFT_KEY = 'onboardingMainFormDraft';
+    const USER_DETAILS_DRAFT_KEY = 'onboardingUserDetailsDraft';
 
     function readMainFormDraft() {
       try {
@@ -124,8 +125,33 @@
       }
     }
 
+    function readUserDetailsDraft() {
+      try {
+        const raw = sessionStorage.getItem(USER_DETAILS_DRAFT_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function persistUserDetailsDraft() {
+      try {
+        sessionStorage.setItem(USER_DETAILS_DRAFT_KEY, JSON.stringify({
+          source: 'user-details-form',
+          mainForm: readMainFormDraft(),
+          users: collectUserRows(),
+        }));
+      } catch (error) {
+        // Ignore storage failures and continue submission.
+      }
+    }
+
     function clearMainFormDraft() {
       sessionStorage.removeItem(MAIN_FORM_DRAFT_KEY);
+    }
+
+    function clearUserDetailsDraft() {
+      sessionStorage.removeItem(USER_DETAILS_DRAFT_KEY);
     }
 
     function setStatus(message, type = 'info') {
@@ -301,6 +327,44 @@
       }
     }
 
+    function restoreUserDetailsDraft() {
+      const draft = readUserDetailsDraft();
+      if (!draft || !Array.isArray(draft.users)) {
+        return;
+      }
+
+      Array.from(userRows.querySelectorAll('.user-row')).forEach((row) => {
+        const detailsRow = row.nextElementSibling;
+        row.remove();
+        if (detailsRow && detailsRow.classList.contains('user-details-row')) {
+          detailsRow.remove();
+        }
+      });
+
+      draft.users.forEach((user) => {
+        const { row, detailsRow } = createUserRow();
+        row.querySelector('input[placeholder="Name"]').value = user.name || '';
+        row.querySelector('input[placeholder="Email"]').value = user.email || '';
+        row.querySelector('input[placeholder="Phone"]').value = user.phone || '';
+        row.querySelector('select').value = user.role || 'User';
+        row.querySelector('.user-type-select').value = user.userType || '';
+
+        const detailsBody = detailsRow.querySelector('.details-body');
+        if (detailsBody) {
+          const devices = Array.isArray(user.devices) ? user.devices : [];
+          detailsBody.querySelectorAll('input[name="devices"]').forEach((checkbox) => {
+            checkbox.checked = devices.includes(checkbox.value);
+          });
+          detailsBody.querySelector('textarea').value = user.shippingAddress || '';
+          detailsBody.querySelectorAll('textarea')[1].value = user.additionalInfo || '';
+        }
+
+        updateCarevuDetails(row, row.querySelector('.user-type-select'));
+        userRows.appendChild(row);
+        userRows.appendChild(detailsRow);
+      });
+    }
+
     async function handleUserSubmit(event) {
       event.preventDefault();
 
@@ -325,6 +389,7 @@
         setStatus('Your user details were submitted successfully.', 'success');
         resetUserDetailsForm();
         clearMainFormDraft();
+        clearUserDetailsDraft();
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 3000);
@@ -337,6 +402,7 @@
       const { row, detailsRow } = createUserRow();
       userRows.appendChild(row);
       userRows.appendChild(detailsRow);
+      persistUserDetailsDraft();
     });
 
     const initialRow = userRows.querySelector('.user-row');
@@ -351,7 +417,10 @@
 
     bindUserTypeListener(initialRow, initialRow.querySelector('.user-type-select'));
     bindDetailsToggle(initialDetailsRow);
+    form.addEventListener('input', persistUserDetailsDraft);
+    form.addEventListener('change', persistUserDetailsDraft);
     form.addEventListener('submit', handleUserSubmit);
+    restoreUserDetailsDraft();
   </script>
 </body>
 </html>
