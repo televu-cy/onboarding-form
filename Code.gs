@@ -6,18 +6,31 @@ function doPost(e) {
     const sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
     const headers = getCanonicalHeaders();
 
-    ensureHeaders(sheet, headers);
+    const lock = LockService.getScriptLock();
+    let lockAcquired = false;
 
-    const timestamp = new Date().toISOString();
-    const rows = buildRows(payload, timestamp, headers);
+    try {
+      lock.waitLock(10000);
+      lockAcquired = true;
 
-    if (rows.length > 0) {
-      sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
+      ensureHeaders(sheet, headers);
+
+      const timestamp = new Date().toISOString();
+      const startingId = getNextSubmissionId(sheet);
+      const rows = buildRows(payload, timestamp, headers, startingId);
+
+      if (rows.length > 0) {
+        sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
+      }
+
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: true, message: "Saved to sheet", rows: rows.length }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } finally {
+      if (lockAcquired) {
+        lock.releaseLock();
+      }
     }
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, message: "Saved to sheet", rows: rows.length }))
-      .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     return ContentService
       .createTextOutput(JSON.stringify({ ok: false, message: error.message }))
@@ -27,6 +40,7 @@ function doPost(e) {
 
 function getCanonicalHeaders() {
   return [
+    "ID",
     "Timestamp",
     "Source",
     "Form For",
@@ -57,6 +71,19 @@ function parsePayload(e) {
   } catch (error) {
     return {};
   }
+}
+
+function getNextSubmissionId(sheet) {
+  const lastRow = sheet.getLastRow();
+  return lastRow <= 1 ? 1 : lastRow;
+}
+
+function getSubmissionDate(timestamp) {
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function buildSubmissionId(timestamp, sequence) {
+  return `OF-${getSubmissionDate(timestamp)}-${sequence}`;
 }
 
 function ensureHeaders(sheet, headers) {
@@ -122,21 +149,33 @@ function isHeaderLikeRow(row) {
     return false;
   }
 
-  return normalizeCell(row[0]) === "Timestamp"
-    && normalizeCell(row[1]) === "Source"
-    && normalizeCell(row[2]) === "Form For";
+  const firstCell = normalizeCell(row[0]);
+  const secondCell = normalizeCell(row[1]);
+  const thirdCell = normalizeCell(row[2]);
+
+  const hasNewHeader = firstCell === "ID"
+    && secondCell === "Timestamp"
+    && thirdCell === "Source";
+
+  const hasLegacyHeader = firstCell === "Timestamp"
+    && secondCell === "Source"
+    && thirdCell === "Form For";
+
+  return hasNewHeader || hasLegacyHeader;
 }
 
 function normalizeCell(value) {
   return String(value || "").trim();
 }
 
-function buildRows(payload, timestamp, headers) {
+function buildRows(payload, timestamp, headers, startingId) {
   const rows = [];
   const source = payload.source || "";
+  let nextId = startingId;
 
   if (source === "main-form") {
     rows.push(buildRowFromObject(headers, {
+      ID: buildSubmissionId(timestamp, nextId++),
       Timestamp: timestamp,
       Source: source,
       "Form For": payload.formFor || "",
@@ -162,6 +201,7 @@ function buildRows(payload, timestamp, headers) {
 
     payload.users.forEach(function(user) {
       rows.push(buildRowFromObject(headers, {
+        ID: buildSubmissionId(timestamp, nextId++),
         Timestamp: timestamp,
         Source: source,
         "Form For": mainForm.formFor || "",
