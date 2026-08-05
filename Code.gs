@@ -21,6 +21,7 @@ function doPost(e) {
 
       if (rows.length > 0) {
         sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
+        sendFormEmailNotification(rows, headers);
       }
 
       return ContentService
@@ -227,6 +228,42 @@ function buildRows(payload, timestamp, headers, startingId) {
 function buildRowFromObject(headers, values) {
   return headers.map(function(header) {
     return values[header] || "";
+  });
+}
+
+function sendFormEmailNotification(rows, headers) {
+  const recipient = "support@televu.ca";
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/1E8ABVdsWoXQen3QeISVlWMYAaunBup7kNgP3Rp0WWbk/edit?usp=sharing";
+  const subject = `New Form Submission Received - ${rows.length} row${rows.length === 1 ? "" : "s"}`;
+
+  let plainBody = `A new Onboarding form submission has been received with ${rows.length} row${rows.length === 1 ? "" : "s"}:\n\n`;
+  let htmlBody = `<h3>New Onboarding Form Submission Received</h3>`;
+
+  rows.forEach(function(row, rowIndex) {
+    const rowLabel = `Row ${rowIndex + 1}`;
+    plainBody += `${rowLabel}:\n`;
+    htmlBody += `<h4>${rowLabel}</h4>`;
+    htmlBody += `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-family: Arial, sans-serif;">`;
+
+    headers.forEach(function(header, index) {
+      const value = row[index] || "N/A";
+      plainBody += `${header}: ${value}\n`;
+      htmlBody += `<tr><td style="background-color: #f2f2f2; font-weight: bold;">${header}</td><td>${value}</td></tr>`;
+    });
+
+    plainBody += `\n`;
+    htmlBody += `</table><br/>`;
+  });
+
+  plainBody += `----------------------------------------\n`;
+  plainBody += `Spreadsheet Link:\n${sheetUrl}`;
+  htmlBody += `<p><strong>Spreadsheet Link:</strong><br><a href="${sheetUrl}">${sheetUrl}</a></p>`;
+
+  MailApp.sendEmail({
+    to: recipient,
+    subject: subject,
+    body: plainBody,
+    htmlBody: htmlBody
   });
 }
 
