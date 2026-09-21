@@ -102,6 +102,7 @@
             </tbody>
           </table>
           <button type="button" id="add-user-row" class="secondary">+ Add user</button>
+          <p id="user-limit-note" class="field-note hidden" role="status" aria-live="polite"></p>
         </fieldset>
         <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
         <button id="user-submit" type="submit">Submit Request</button>
@@ -114,6 +115,7 @@
     const form = document.getElementById('user-details-form');
     const statusBox = document.getElementById('form-status');
     const submitButton = document.getElementById('user-submit');
+    const userLimitNote = document.getElementById('user-limit-note');
     const MAIN_FORM_DRAFT_KEY = 'onboardingMainFormDraft';
     const USER_DETAILS_DRAFT_KEY = 'onboardingUserDetailsDraft';
 
@@ -167,6 +169,15 @@
       if (showDetails) {
         toggleDetailsBody(detailsRow, false);
       }
+    }
+
+    function updateAddUserState() {
+      const atLimit = userRows.querySelectorAll('.user-row').length >= OnboardingSubmit.MAX_USERS;
+      addUserRowButton.disabled = atLimit;
+      userLimitNote.textContent = atLimit
+        ? `You've reached the maximum of ${OnboardingSubmit.MAX_USERS} users per request. To add more, submit this request and start a new one.`
+        : '';
+      userLimitNote.classList.toggle('hidden', !atLimit);
     }
 
     function bindUserTypeListener(row, select) {
@@ -275,6 +286,7 @@
         if (userRows.querySelectorAll('.user-row').length > 1) {
           row.remove();
           detailsRow.remove();
+          updateAddUserState();
         }
       });
 
@@ -326,6 +338,7 @@
         toggleDetailsBody(firstDetails, false);
         firstDetails.classList.add('hidden');
       }
+      updateAddUserState();
     }
 
     function restoreUserDetailsDraft() {
@@ -342,7 +355,7 @@
         }
       });
 
-      draft.users.forEach((user) => {
+      draft.users.slice(0, OnboardingSubmit.MAX_USERS).forEach((user) => {
         const { row, detailsRow } = createUserRow();
         row.querySelector('input[placeholder="Name"]').value = user.name || '';
         row.querySelector('input[placeholder="Email"]').value = user.email || '';
@@ -434,13 +447,14 @@
 
     addUserRowButton.addEventListener('click', () => {
       if (userRows.querySelectorAll('.user-row').length >= OnboardingSubmit.MAX_USERS) {
-        setStatus(`You can add up to ${OnboardingSubmit.MAX_USERS} users per request.`, 'info');
         return;
       }
       const { row, detailsRow } = createUserRow();
       userRows.appendChild(row);
       userRows.appendChild(detailsRow);
+      updateAddUserState();
       persistUserDetailsDraft();
+      row.querySelector('input[placeholder="Name"]').focus();
     });
 
     const initialRow = userRows.querySelector('.user-row');
@@ -450,6 +464,7 @@
       if (userRows.querySelectorAll('.user-row').length > 1) {
         initialRow.remove();
         initialDetailsRow.remove();
+        updateAddUserState();
       }
     });
 
@@ -459,6 +474,7 @@
     form.addEventListener('change', persistUserDetailsDraft);
     form.addEventListener('submit', handleUserSubmit);
     restoreUserDetailsDraft();
+    updateAddUserState();
   </script>
 </body>
 </html>
