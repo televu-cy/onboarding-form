@@ -6,6 +6,7 @@
   <title>Customer Onboarding Form</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="config.js"></script>
+  <script src="submit.js"></script>
 </head>
 <body>
   <div class="page-shell">
@@ -140,7 +141,6 @@
     const deliveryGroup = document.getElementById('delivery-date-group');
     const form = document.getElementById('main-onboarding-form');
     const statusBox = document.getElementById('form-status');
-    const SHEET_WEBHOOK_URL = window.APP_CONFIG?.SHEET_WEBHOOK_URL || '';
     const MAIN_FORM_DRAFT_KEY = 'onboardingMainFormDraft';
 
     function persistMainFormDraft() {
@@ -254,36 +254,50 @@
       };
     }
 
+    function buildMainSubmission(data, submissionId) {
+      return {
+        subject: `New Onboarding Submission - ${data.portalName || 'Unknown portal'} (${submissionId})`,
+        replyto: data.email,
+        submission_id: submissionId,
+        source: data.source,
+        form_for: data.formFor,
+        portal_name: data.portalName,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        user_type: data.userType,
+        devices: OnboardingSubmit.joinList(data.devices),
+        shipping_address: data.shippingAddress,
+        additional_info: data.additionalInfo,
+        required_delivery_date: data.requiredDeliveryDate,
+      };
+    }
+
     async function handleMainSubmit(event) {
       event.preventDefault();
 
-      if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.includes('YOUR_')) {
-        setStatus('Set the Apps Script URL in config.js before submitting.', 'error');
-        return;
-      }
-
       setStatus('Submitting your request...', 'loading');
+      mainSubmit.disabled = true;
 
       try {
         persistMainFormDraft();
 
-        await fetch(SHEET_WEBHOOK_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(collectMainFormData()),
-        });
+        const submissionId = OnboardingSubmit.buildSubmissionId();
+        await OnboardingSubmit.send(buildMainSubmission(collectMainFormData(), submissionId));
 
-        // Apps Script web apps commonly require no-cors, which returns an opaque response.
-        setStatus('Your request was submitted successfully.', 'success');
+        setStatus(`Your request was submitted successfully. Reference: ${submissionId}`, 'success');
         form.reset();
         clearMainFormDraft();
         updateConditionalFields();
         setTimeout(() => {
           window.location.href = 'index.html';
-        }, 3000);
+        }, 5000);
       } catch (error) {
+        // Keep the customer's answers so they can retry without retyping.
         setStatus(error.message || 'Submission failed. Please try again.', 'error');
+        mainSubmit.disabled = false;
       }
     }
 

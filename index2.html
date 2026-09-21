@@ -6,6 +6,7 @@
   <title>User Details</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="config.js"></script>
+  <script src="submit.js"></script>
 </head>
 <body>
   <div class="page-shell">
@@ -103,7 +104,7 @@
           <button type="button" id="add-user-row" class="secondary">+ Add user</button>
         </fieldset>
         <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
-        <button type="submit">Submit Request</button>
+        <button id="user-submit" type="submit">Submit Request</button>
       </form>
     </div>
   </div>
@@ -112,7 +113,7 @@
     const userRows = document.getElementById('user-rows');
     const form = document.getElementById('user-details-form');
     const statusBox = document.getElementById('form-status');
-    const SHEET_WEBHOOK_URL = window.APP_CONFIG?.SHEET_WEBHOOK_URL || '';
+    const submitButton = document.getElementById('user-submit');
     const MAIN_FORM_DRAFT_KEY = 'onboardingMainFormDraft';
     const USER_DETAILS_DRAFT_KEY = 'onboardingUserDetailsDraft';
 
@@ -365,40 +366,77 @@
       });
     }
 
+    // splitforms stores flat fields only, so each user becomes a numbered set of columns.
+    function buildUserDetailsSubmission(mainForm, users, submissionId) {
+      const fields = {
+        subject: `New Onboarding Submission - ${mainForm.portalName || 'Unknown portal'} - ${users.length} user${users.length === 1 ? '' : 's'} (${submissionId})`,
+        replyto: mainForm.email || '',
+        submission_id: submissionId,
+        source: 'user-details-form',
+        form_for: mainForm.formFor || '',
+        portal_name: mainForm.portalName || '',
+        first_name: mainForm.firstName || '',
+        last_name: mainForm.lastName || '',
+        email: mainForm.email || '',
+        phone: mainForm.phone || '',
+        user_count: users.length,
+      };
+
+      users.forEach((user, index) => {
+        const prefix = `user_${index + 1}_`;
+        fields[`${prefix}name`] = user.name;
+        fields[`${prefix}email`] = user.email;
+        fields[`${prefix}phone`] = user.phone;
+        fields[`${prefix}role`] = user.role;
+        fields[`${prefix}user_type`] = user.userType;
+        fields[`${prefix}devices`] = OnboardingSubmit.joinList(user.devices);
+        fields[`${prefix}shipping_address`] = user.shippingAddress;
+        fields[`${prefix}additional_info`] = user.additionalInfo;
+      });
+
+      return fields;
+    }
+
     async function handleUserSubmit(event) {
       event.preventDefault();
 
-      if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.includes('YOUR_')) {
-        setStatus('Set the Apps Script URL in config.js before submitting.', 'error');
+      const users = collectUserRows().filter((user) => user.name || user.email || user.phone);
+      if (users.length === 0) {
+        setStatus('Please add at least one user before submitting.', 'error');
+        return;
+      }
+      if (users.length > OnboardingSubmit.MAX_USERS) {
+        setStatus(`Please submit at most ${OnboardingSubmit.MAX_USERS} users at a time.`, 'error');
         return;
       }
 
       setStatus('Submitting your request...', 'loading');
+      submitButton.disabled = true;
 
       try {
-        const mainForm = readMainFormDraft();
+        const mainForm = readMainFormDraft() || {};
+        const submissionId = OnboardingSubmit.buildSubmissionId();
+        await OnboardingSubmit.send(buildUserDetailsSubmission(mainForm, users, submissionId));
 
-        await fetch(SHEET_WEBHOOK_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ source: 'user-details-form', mainForm, users: collectUserRows() }),
-        });
-
-        // Apps Script web apps commonly require no-cors, which returns an opaque response.
-        setStatus('Your user details were submitted successfully.', 'success');
+        setStatus(`Your user details were submitted successfully. Reference: ${submissionId}`, 'success');
         resetUserDetailsForm();
         clearMainFormDraft();
         clearUserDetailsDraft();
         setTimeout(() => {
           window.location.href = 'index.html';
-        }, 3000);
+        }, 5000);
       } catch (error) {
+        // Keep the entered users so they can retry without retyping.
         setStatus(error.message || 'Submission failed. Please try again.', 'error');
+        submitButton.disabled = false;
       }
     }
 
     addUserRowButton.addEventListener('click', () => {
+      if (userRows.querySelectorAll('.user-row').length >= OnboardingSubmit.MAX_USERS) {
+        setStatus(`You can add up to ${OnboardingSubmit.MAX_USERS} users per request.`, 'info');
+        return;
+      }
       const { row, detailsRow } = createUserRow();
       userRows.appendChild(row);
       userRows.appendChild(detailsRow);

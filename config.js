@@ -1,3 +1,5 @@
 window.APP_CONFIG = {
-  SHEET_WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwBVkcwFq7YEFgFL7iBOLQaZKXpkgXyNk4lftymoaTtwFOj_g5BDghhbLfND16dpJAt/exec',
+  SPLITFORMS_ENDPOINT: 'https://splitforms.com/api/submit',
+  // Public form identifier from the splitforms dashboard; safe to ship in client code.
+  SPLITFORMS_ACCESS_KEY: '4f0b32fe5f3040a787dcfd23224ce4f7',
 };
