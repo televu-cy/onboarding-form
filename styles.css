@@ -222,6 +222,10 @@ textarea:focus {
   border-radius: 12px;
   cursor: pointer;
 }
+.secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .button {
   display: inline-flex;
   align-items: center;
